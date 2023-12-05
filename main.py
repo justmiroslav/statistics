@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import ast
 
-card_data = pd.read_csv('statistics/CartIdName.csv')
+card_data = pd.read_csv('statistics/CartIdNameRarity.csv')
+
 
 # Extract card IDs from deck strings
 def extract_card_ids(deck_str):
@@ -15,9 +16,11 @@ def extract_card_ids(deck_str):
     except (ValueError, SyntaxError):
         return []
 
+
 # Process battle data
 def process_battle_data():
     num_battles = 0
+    high_damage_count = 0
     battle_stats = defaultdict(list)
     card_usage = defaultdict(lambda: defaultdict(int))
     card_damage = defaultdict(lambda: defaultdict(int))
@@ -38,6 +41,10 @@ def process_battle_data():
             battle_stats["winner"].append(winner_diff)
             battle_stats["loser"].append(loser_diff)
 
+            total_damage = winner_damage + loser_damage
+            if total_damage > 12000:
+                high_damage_count += 1
+
             winner_deck, loser_deck = extract_card_ids(row[8]), extract_card_ids(row[9])
             for card in winner_deck:
                 card_usage[card]['winner'] += 1
@@ -50,7 +57,7 @@ def process_battle_data():
 
             num_battles += 1
 
-    return battle_stats, card_usage, card_trophies, card_damage
+        print(f"Total number of matches: {num_battles}")
 
     avg_winner_diff = sum(battle_stats["winner"]) / len(battle_stats["winner"])
     max_winner_diff = max(battle_stats["winner"])
@@ -62,23 +69,37 @@ def process_battle_data():
     min_loser_diff = min(battle_stats["loser"])
     std_loser_diff = statistics.stdev(battle_stats["loser"])
 
+    # Calculate the average damages
+    total_winner_damage = sum(card_damage[card]['winner'] for card in card_damage)
+    total_loser_damage = sum(card_damage[card]['loser'] for card in card_damage)
+    avg_winner_damage = total_winner_damage / num_battles
+    avg_loser_damage = total_loser_damage / num_battles
+
+    proportion_high_damage = high_damage_count / num_battles
+
     # Converting card usage, damage, and trophies data to DataFrames
     card_usage_df = pd.DataFrame(card_usage).T
     card_damage_df = pd.DataFrame(card_damage).T
     card_trophies_df = pd.DataFrame(card_trophies).T
-    card_usage_df = card_usage_df.merge(card_data, left_index=True, right_on='team.card1.id')
-    card_damage_df = card_damage_df.merge(card_data, left_index=True, right_on='team.card1.id')
-    card_trophies_df = card_trophies_df.merge(card_data, left_index=True, right_on='team.card1.id')
+
+    # Merging data with card_data
+    card_usage_df = card_usage_df.merge(card_data, left_index=True, right_on='CardId')
+    card_damage_df = card_damage_df.merge(card_data, left_index=True, right_on='CardId')
+    card_trophies_df = card_trophies_df.merge(card_data, left_index=True, right_on='CardId')
 
     return (
-        avg_winner_diff, max_winner_diff, min_winner_diff, std_winner_diff,
-        avg_loser_diff, max_loser_diff, min_loser_diff, std_loser_diff,
+        battle_stats,
         card_usage_df, card_trophies_df, card_damage_df,
+        avg_winner_diff, max_winner_diff, min_winner_diff, std_winner_diff,
+        avg_loser_diff, max_loser_diff, min_loser_diff, std_loser_diff, avg_winner_damage, avg_loser_damage,
+        proportion_high_damage
     )
+
 
 # Plotting graphs
 def plot_graphs(avg_winner_diff, avg_loser_diff, max_winner_diff, max_loser_diff, min_winner_diff, min_loser_diff,
-                std_winner_diff, std_loser_diff, card_usage_df, card_trophies_df, card_damage_df):
+                std_winner_diff, std_loser_diff, card_usage_df, card_trophies_df, card_damage_df, avg_winner_damage,
+                avg_loser_damage, proportion_high_damage):
     # Average trophy change
     plt.figure(figsize=(12, 8))
     plt.subplot(2, 2, 1)
@@ -112,7 +133,7 @@ def plot_graphs(avg_winner_diff, avg_loser_diff, max_winner_diff, max_loser_diff
 
     # Card frequency in winning vs. losing decks
     plt.figure(figsize=(12, 6))
-    ax = card_usage_df.sort_values('winner', ascending=False).head(10).plot(x='team.card1.name', y=['winner', 'loser'], kind='bar', stacked=False)
+    ax = card_usage_df.sort_values('winner', ascending=False).head(10).plot(x='CardName', y=['winner', 'loser'], kind='bar', stacked=False)
     plt.title('Top 10 Cards in Winning and Losing Decks')
     plt.ylabel('Usage Frequency')
     plt.xlabel('Card Name')
@@ -122,7 +143,7 @@ def plot_graphs(avg_winner_diff, avg_loser_diff, max_winner_diff, max_loser_diff
     # Card impact on trophy gains
     plt.figure(figsize=(12, 6))
     card_trophies_df['avg_trophy_gain'] = card_trophies_df['winner'] / card_usage_df['winner']
-    card_trophies_df.sort_values('avg_trophy_gain', ascending=False).head(10).plot(x='team.card1.name', y='avg_trophy_gain', kind='bar', color='green')
+    card_trophies_df.sort_values('avg_trophy_gain', ascending=False).head(10).plot(x='CardName', y='avg_trophy_gain', kind='bar', color='green')
     plt.title('Average Trophy Gain for Top 10 Cards')
     plt.ylabel('Average Trophy Gain')
     plt.xlabel('Card Name')
@@ -130,7 +151,7 @@ def plot_graphs(avg_winner_diff, avg_loser_diff, max_winner_diff, max_loser_diff
     # Card impact on damage dealt
     plt.figure(figsize=(14, 6))
     card_damage_df['avg_damage'] = card_damage_df['winner'] / card_usage_df['winner']
-    card_damage_df.sort_values('avg_damage', ascending=False).head(10).plot(x='team.card1.name', y='avg_damage', kind='bar', color='orange')
+    card_damage_df.sort_values('avg_damage', ascending=False).head(10).plot(x='CardName', y='avg_damage', kind='bar', color='orange')
     plt.title('Average Damage Dealt for Top 10 Cards')
     plt.ylabel('Average Damage')
     plt.xlabel('Card Name')
@@ -150,18 +171,42 @@ def plot_graphs(avg_winner_diff, avg_loser_diff, max_winner_diff, max_loser_diff
     avg_card_damage_diff = {card: sum(diffs) / len(diffs) for card, diffs in card_damage_diff.items() if diffs}
 
     avg_card_damage_diff_df = pd.DataFrame(list(avg_card_damage_diff.items()), columns=['CardID', 'AvgDamageDiff'])
-    avg_card_damage_diff_df = avg_card_damage_diff_df.merge(card_data, left_on='CardID', right_on='team.card1.id')
+    avg_card_damage_diff_df = avg_card_damage_diff_df.merge(card_data, left_on='CardID', right_on='CardID')
 
     top_cards_damage_diff = avg_card_damage_diff_df.sort_values(by='AvgDamageDiff', ascending=False).head(10)
 
     plt.figure(figsize=(12, 6))
-    plt.bar(top_cards_damage_diff['team.card1.name'], top_cards_damage_diff['AvgDamageDiff'], color='purple')
+    plt.bar(top_cards_damage_diff['CardName'], top_cards_damage_diff['AvgDamageDiff'], color='purple')
     plt.title('Average Damage Difference for Top 10 Most Frequently Used Cards')
     plt.xlabel('Card Name')
     plt.ylabel('Average Damage Difference')
     plt.xticks(rotation=45)
 
+    # Plot for average damage dealt by winners and losers
+    plt.figure(figsize=(8, 6))
+    plt.bar(['Average Winner Damage', 'Average Loser Damage'], [avg_winner_damage, avg_loser_damage],
+            color=['blue', 'red'])
+    plt.title('Average Damage Dealt by Winners and Losers')
+    plt.ylabel('Average Damage')
+
+    # Plot for proportion of high damage matches
+    plt.figure(figsize=(8, 6))
+    plt.pie([proportion_high_damage, 1 - proportion_high_damage], labels=['> 12000 Damage', '<= 12000 Damage'], autopct='%1.1f%%', startangle=140, colors=['green', 'lightgrey'])
+    plt.title('Proportion of Matches with Total Damage over 12000')
+
     plt.show()
 
+
 if __name__ == "__main__":
-    battle_stats, card_usage, card_trophies, card_damage = process_battle_data()
+    (
+        battle_stats,
+        card_usage_df, card_trophies_df, card_damage_df,
+        avg_winner_diff, max_winner_diff, min_winner_diff,
+        std_winner_diff, avg_loser_diff, max_loser_diff,
+        min_loser_diff, std_loser_diff, avg_winner_damage,
+        avg_loser_damage, proportion_high_damage
+    ) = process_battle_data()
+
+    plot_graphs(avg_winner_diff, avg_loser_diff, max_winner_diff, max_loser_diff, min_winner_diff, min_loser_diff,
+                std_winner_diff, std_loser_diff, card_usage_df, card_trophies_df, card_damage_df, avg_winner_damage,
+                avg_loser_damage, proportion_high_damage)
