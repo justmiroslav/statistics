@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import ast
 
-card_data = pd.read_csv('statistics/CartIdNameRarity.csv')
+card_data = pd.read_csv("IdNameRarityCost.csv")
 
 
 # Extract card IDs from deck strings
@@ -26,7 +26,7 @@ def process_battle_data():
     card_damage = defaultdict(lambda: defaultdict(int))
     card_trophies = defaultdict(lambda: defaultdict(int))
 
-    with open("statistics/ClashRoyaleData.csv") as f:
+    with open("ClashRoyaleData.csv") as f:
         reader = csv.reader(f)
         next(reader)  # Skip the header
 
@@ -159,7 +159,7 @@ def plot_graphs(avg_winner_diff, avg_loser_diff, max_winner_diff, max_loser_diff
     # Average damage difference for top 10 most frequently used cards
     card_damage_diff = defaultdict(list)
 
-    for index, row in pd.read_csv("statistics/ClashRoyaleData.csv").iterrows():
+    for index, row in pd.read_csv("ClashRoyaleData.csv").iterrows():
         winner_deck = extract_card_ids(row[8])
         loser_deck = extract_card_ids(row[9])
         damage_diff = int(row[12]) - int(row[13])
