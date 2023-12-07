@@ -1,4 +1,6 @@
 import csv
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 battle_data = []
 card_data = []
@@ -70,3 +72,35 @@ print(f"3.2 - Average loser damage: {sum(total_loser_damage)/len(total_loser_dam
 print(f"4.1 - Average damage for each elixir level for winners: {elx_winner_avg}")
 print(f"4.2 - Average damage for each elixir level for losers: {elx_loser_avg}")
 print(f"5 - Percentage of matches with total damage over 12000: {(sum(total_matches_with_high_damage)/1000)*100:.2f}%")
+
+card_names = [details[0] for details in win_cards_names.values()]
+win_counts = [details[3] for details in win_cards_names.values()]
+lose_card_names = [details[0] for details in lose_cards_names.values()]
+lose_counts = [details[3] for details in lose_cards_names.values()]
+avg_winner_damage = sum(total_winner_damage) / len(total_winner_damage)
+avg_loser_damage = sum(total_loser_damage) / len(total_loser_damage)
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x=card_names, y=win_counts, palette="viridis")
+plt.title("Top 10 Win Cards in Clash Royale")
+plt.xlabel("Card Name")
+plt.ylabel("Count")
+plt.xticks(rotation=45)
+plt.show()
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x=lose_card_names, y=lose_counts, palette="magma")
+plt.title("Top 10 Lose Cards in Clash Royale")
+plt.xlabel("Card Name")
+plt.ylabel("Count")
+plt.xticks(rotation=45)
+plt.show()
+
+categories = ['Average Winner Damage', 'Average Loser Damage']
+values = [avg_winner_damage, avg_loser_damage]
+
+plt.figure(figsize=(8, 5))
+sns.barplot(x=categories, y=values, palette="coolwarm")
+plt.title("Average Damage Comparison")
+plt.ylabel("Average Damage")
+plt.show()
