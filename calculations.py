@@ -161,6 +161,34 @@ plt.title("Average Damage Comparison")
 plt.ylabel("Average Damage")
 plt.show()
 
+del elx_winner_avg[4.75]  # deleted probably incorrect data as avg damage for elixir level 4.75 is 0
+win_elixir_levels = [round(elx_level, 1) for elx_level in elx_winner_avg.keys()]
+win_avg_damage_per_level = [damage for damage in elx_winner_avg.values()]
+plt.figure(figsize=(12, 5))
+sns.barplot(x=win_elixir_levels, y=win_avg_damage_per_level, palette="crest")
+plt.title("Average Damage For Each Elixir Level For Winners")
+plt.xlabel("Elixir Level")
+plt.ylabel("Average Damage")
+plt.show()
+
+lose_elixir_levels = [round(elx_level, 1) for elx_level in elx_loser_avg.keys()]
+lose_avg_damage_per_level = [damage for damage in elx_loser_avg.values()]
+plt.figure(figsize=(12, 5))
+sns.barplot(x=lose_elixir_levels, y=lose_avg_damage_per_level, palette="rocket")
+plt.title("Average Damage For Each Elixir Level For Losers")
+plt.xlabel("Elixir Level")
+plt.ylabel("Average Damage")
+plt.show()
+
+percentage_of_matches_with_high_damage = (sum(total_matches_with_high_damage) / 1000) * 100
+labels = ['Matches with High Damage', 'Matches with Low Damage']
+sizes = [percentage_of_matches_with_high_damage, 100 - percentage_of_matches_with_high_damage]
+colors = ['lightcoral', 'lightskyblue']
+plt.figure(figsize=(8, 5))
+plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
+plt.title('Percentage of Matches with Total Damage over 12000')
+plt.show()
+
 total_winner = sum(winner_deck_rarity_count.values())
 winner_percentages = [(v/total_winner)*100 for v in winner_deck_rarity_count.values()]
 
