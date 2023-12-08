@@ -9,7 +9,7 @@ with open("ClashRoyaleData.csv", "r") as file:
 
 elixir_level_differences = []
 
-for battle in battle_data:
+for battle in battle_data[:100000]:
     if int(battle["totalDamage"]) > 12000:
         winner_elixir = float(battle["winnerElixir"])
         loser_elixir = float(battle["loserElixir"])
@@ -20,7 +20,7 @@ bin_edges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
              1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
 
 plt.figure(figsize=(10, 6))
-plt.hist(elixir_level_differences, bins=bin_edges, color='skyblue', edgecolor='black')
+plt.hist(elixir_level_differences, bins=bin_edges, color="skyblue", edgecolor="black")
 plt.title("Elixir Level Differences in High-Damage Battles")
 plt.xlabel("Elixir Level Difference")
 plt.ylabel("Frequency")
