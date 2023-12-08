@@ -42,6 +42,7 @@ battles_by_rarity = {
     "Epic": {},
     "Legendary": {}
 }
+elixir_level_differences = []
 
 
 def get_card_rarity(card_id):
@@ -107,6 +108,12 @@ for battle in battle_data[:1000]:
 
     for card_id, level in loser_deck:
         lose_cards[str(card_id)] = lose_cards.get(str(card_id), 0) + 1
+
+    if int(battle["totalDamage"]) > 12000:
+        winner_elixir = float(battle["winnerElixir"])
+        loser_elixir = float(battle["loserElixir"])
+        diff = abs(winner_elixir - loser_elixir)
+        elixir_level_differences.append(diff)
 
 win_cards_list = sorted(win_cards.items(), key=lambda y: y[1], reverse=True)[:10]
 lose_cards_list = sorted(lose_cards.items(), key=lambda y: y[1], reverse=True)[:10]
@@ -236,3 +243,11 @@ for rarity in battles_by_rarity:
     plt.ylabel("Win Rate, %")
     plt.title(f"{rarity} Win Rate by Number of Cards")
     plt.show()
+
+plt.figure(figsize=(10, 6))
+plt.hist(elixir_level_differences, bins=30, color='skyblue', edgecolor='black')
+plt.title("Elixir Level Differences in High-Damage Battles")
+plt.xlabel("Elixir Level Difference")
+plt.ylabel("Frequency")
+plt.grid(True)
+plt.show()
