@@ -28,7 +28,7 @@ elx_loser_avg = {}
 
 def get_card_rarity(this_card_id):
     for card in card_data:
-        if card["ï»¿CardId"] == str(this_card_id):
+        if card["п»їCardId"] == str(this_card_id):
             return card["CardRarity"]
 
 def count_rarity(deck, rarity):
@@ -40,7 +40,7 @@ def count_rarity(deck, rarity):
 
 def get_card_name(card_id):
     for card in card_data:
-        if card["ï»¿CardId"] == str(card_id):
+        if card["п»їCardId"] == str(card_id):
             return card["CardName"]
 
 for battle in battle_data:
@@ -79,7 +79,7 @@ top_10_card_names = [card[0] for card in top_10_cards]
 top_10_card_counts = [card[1] for card in top_10_cards]
 
 # Visualize the top 10 most popular cards
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(12, 6))
 sns.barplot(x=top_10_card_counts, y=top_10_card_names, palette="viridis")
 plt.title("Top 10 Most Popular Cards")
 plt.xlabel("Number of Appearances")
