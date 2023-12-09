@@ -16,10 +16,8 @@ with open("CardData.csv", "r") as file:
         card_data.append(row)
 
 print(f"Total battles: {len(battle_data)}")
-win_cards = {}
-lose_cards = {}
-win_cards_names = {}
-lose_cards_names = {}
+
+card_popularity = {}
 total_matches_with_high_damage = []
 total_winner_damage = []
 total_loser_damage = []
@@ -40,11 +38,25 @@ def count_rarity(deck, rarity):
             counter += 1
     return counter
 
+def get_card_name(card_id):
+    for card in card_data:
+        if card["п»їCardId"] == str(card_id):
+            return card["CardName"]
+
 for battle in battle_data:
     winner_deck = eval(battle["winnerDeck"])
     loser_deck = eval(battle["loserDeck"])
     total_winner_damage.append(int(battle["winnerDamage"]))
     total_loser_damage.append(int(battle["loserDamage"]))
+
+    # Count the popularity of each card
+    for card_id, _ in winner_deck:
+        card_name = get_card_name(card_id)
+        card_popularity[card_name] = card_popularity.get(card_name, 0) + 1
+
+    for card_id, _ in loser_deck:
+        card_name = get_card_name(card_id)
+        card_popularity[card_name] = card_popularity.get(card_name, 0) + 1
 
     if int(battle["totalDamage"]) > 12000:
         total_matches_with_high_damage.append(1)
@@ -52,52 +64,26 @@ for battle in battle_data:
     elx_winner.setdefault(float(battle["winnerElixir"]), []).append(int(battle["winnerDamage"]))
     elx_loser.setdefault(float(battle["loserElixir"]), []).append(int(battle["loserDamage"]))
 
-    for card_id, level in winner_deck:
-        win_cards[str(card_id)] = win_cards.get(str(card_id), 0) + 1
-
-    for card_id, level in loser_deck:
-        lose_cards[str(card_id)] = lose_cards.get(str(card_id), 0) + 1
-
-win_cards_list = sorted(win_cards.items(), key=lambda y: y[1], reverse=True)[:10]
-lose_cards_list = sorted(lose_cards.items(), key=lambda y: y[1], reverse=True)[:10]
-
-for card_id, count in win_cards_list:
-    for x in card_data:
-        if str(card_id) == x["п»їCardId"]:
-            win_cards_names[card_id] = [x["CardName"], x["CardRarity"], x["CardCost"], count]
-
-for card_id, count in lose_cards_list:
-    for x in card_data:
-        if str(card_id) == x["п»їCardId"]:
-            lose_cards_names[card_id] = [x["CardName"], x["CardRarity"], x["CardCost"], count]
-
 for elixir_avg, damages in elx_winner.items():
     elx_winner_avg[round(elixir_avg, 3)] = round(sum(damages) / len(damages), 3)
 
 for elixir_avg, damages in elx_loser.items():
     elx_loser_avg[round(elixir_avg, 3)] = round(sum(damages) / len(damages), 3)
 
-card_names = [details[0] for details in win_cards_names.values()]
-win_counts = [details[3] for details in win_cards_names.values()]
-lose_card_names = [details[0] for details in lose_cards_names.values()]
-lose_counts = [details[3] for details in lose_cards_names.values()]
 avg_winner_damage = sum(total_winner_damage) / len(total_winner_damage)
 avg_loser_damage = sum(total_loser_damage) / len(total_loser_damage)
 
-win_counts_sum = sum(win_counts)
-win_percentage = [count / win_counts_sum * 100 for count in win_counts]
+# Get the top 10 most popular cards
+top_10_cards = sorted(card_popularity.items(), key=lambda x: x[1], reverse=True)[:10]
+top_10_card_names = [card[0] for card in top_10_cards]
+top_10_card_counts = [card[1] for card in top_10_cards]
 
-plt.figure(figsize=(8, 8))
-plt.pie(win_percentage, labels=card_names, autopct="%1.1f%%", startangle=140)
-plt.title("Top 10 Win Cards")
-plt.show()
-
-lose_counts_sum = sum(lose_counts)
-lose_percentage = [count / lose_counts_sum * 100 for count in lose_counts]
-
-plt.figure(figsize=(8, 8))
-plt.pie(lose_percentage, labels=lose_card_names, autopct="%1.1f%%", startangle=140)
-plt.title("Top 10 Lose Cards")
+# Visualize the top 10 most popular cards
+plt.figure(figsize=(12, 6))
+sns.barplot(x=top_10_card_counts, y=top_10_card_names, palette="viridis")
+plt.title("Top 10 Most Popular Cards")
+plt.xlabel("Number of Appearances")
+plt.ylabel("Card Name")
 plt.show()
 
 categories = ["Average Winner Damage", "Average Loser Damage"]
