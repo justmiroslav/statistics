@@ -10,7 +10,7 @@ with open("BattleData.csv", "r") as file:
     for row in reader:
         battle_data.append(row)
 
-with open("IdNameRarityCost.csv", "r") as file:
+with open("CardData.csv", "r") as file:
     reader = csv.DictReader(file)
     for row in reader:
         card_data.append(row)

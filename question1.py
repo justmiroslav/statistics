@@ -9,7 +9,7 @@ with open("BattleData.csv", "r") as file:
     for row in reader:
         battle_data.append(row)
 
-with open("IdNameRarityCost.csv", "r") as file:
+with open("CardData.csv", "r") as file:
     reader = csv.DictReader(file)
     for row in reader:
         card_data.append(row)
@@ -81,13 +81,13 @@ total_loser = sum(loser_deck_rarity_count.values())
 loser_percentages = [(v/total_loser)*100 for v in loser_deck_rarity_count.values()]
 
 labels = list(winner_deck_rarity_count.keys())
-plt.pie(winner_percentages, labels=labels, autopct="%1.1f%%", colors=["green", "lightgrey", "brown", "purple"])
-plt.title("Winner Deck Card Rarity")
+plt.pie(winner_percentages, labels=labels, autopct="%1.2f%%", colors=["green", "lightgrey", "brown", "purple"])
+plt.title("Winner deck rarity distribution")
 plt.show()
 
 labels = list(loser_deck_rarity_count.keys())
-plt.pie(loser_percentages, labels=labels, autopct="%1.1f%%", colors=["blue", "yellow", "red", "pink"])
-plt.title("Loser Deck Card Rarity")
+plt.pie(loser_percentages, labels=labels, autopct="%1.2f%%", colors=["blue", "yellow", "red", "pink"])
+plt.title("Loser deck rarity distribution")
 plt.show()
 
 for rarity in rarity_win_loss:
@@ -96,8 +96,8 @@ for rarity in rarity_win_loss:
     loser_pct = rarity_win_loss[rarity]["losers"] / totals * 100
     labels = ["Winners", "Losers"]
     values = [winner_pct, loser_pct]
-    plt.pie(values, labels=labels, autopct="%1.1f%%")
-    plt.title(f"{rarity} Rarity Win/Loss Percentage")
+    plt.pie(values, labels=labels, autopct="%1.2f%%")
+    plt.title(f"{rarity} rarity Win/Loss chances")
     plt.show()
 
 for rarity in battles_by_rarity:
@@ -122,17 +122,17 @@ for rarity in battles_by_rarity:
         labels.append(str(count))
     plt.bar(labels, values)
     for i, v in enumerate(values):
-        plt.text(i, v + 0.5, str(round(v, 1)) + "%", ha="center")
+        plt.text(i, v + 0.5, str(round(v, 2)) + "%", ha="center")
     plt.xlabel("Number of Cards")
     plt.ylabel("Win Rate, %")
-    plt.title(f"Win Rate by Number of {rarity} cards")
+    plt.title(f"Win rate for numbers of {rarity} rarity cards")
     plt.show()
     plt.bar(labels, percentages)
     for i, v in enumerate(percentages):
-        plt.text(i, v + 0.5, str(round(v, 1)) + "%", ha="center")
+        plt.text(i, v + 0.5, str(round(v, 2)) + "%", ha="center")
     plt.xlabel("Number of Cards")
     plt.ylabel("Percentage of Battles, %")
-    plt.title(f"% Battles by Number of {rarity} Cards")
+    plt.title(f"% Battles for numbers of {rarity} rarity cards")
     plt.show()
 
 for l, d in rarity_win_rates["Legendary"].items():
@@ -150,7 +150,7 @@ combinations.sort(key=lambda x: x[2], reverse=True)
 combinations = combinations[:3]
 
 best_combinations = sorted(combinations, key=lambda x: x[1], reverse=True)
-
+print(f"best_combinations - {best_combinations}")
 for i, (combination, win_rate, kf) in enumerate(best_combinations):
     plt.figure()
     plt.bar(labels_list, combination, color=colors)
