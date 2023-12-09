@@ -5,7 +5,7 @@ import seaborn as sns
 battle_data = []
 card_data = []
 
-with open("ClashRoyaleData.csv", "r") as file:
+with open("BattleData.csv", "r") as file:
     reader = csv.DictReader(file)
     for row in reader:
         battle_data.append(row)
@@ -40,7 +40,7 @@ def count_rarity(deck, rarity):
             counter += 1
     return counter
 
-for battle in battle_data[:100000]:
+for battle in battle_data:
     winner_deck = eval(battle["winnerDeck"])
     loser_deck = eval(battle["loserDeck"])
     total_winner_damage.append(int(battle["winnerDamage"]))

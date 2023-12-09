@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 battle_data = []
 card_data = []
 
-with open("ClashRoyaleData.csv", "r") as file:
+with open("BattleData.csv", "r") as file:
     reader = csv.DictReader(file)
     for row in reader:
         battle_data.append(row)
@@ -17,6 +17,8 @@ with open("IdNameRarityCost.csv", "r") as file:
 combinations = []
 winner_deck_rarity_count = {}
 loser_deck_rarity_count = {}
+labels_list = ["Legendary", "Epic", "Rare", "Common"]
+colors = ["gold", "lightskyblue", "lightcoral", "lightgreen"]
 rarity_win_loss = {
     "Common": {"winners": 0, "losers": 0},
     "Rare": {"winners": 0, "losers": 0},
@@ -48,7 +50,7 @@ def count_rarity(deck, this_rarity):
             counter += 1
     return counter
 
-for battle in battle_data[:100000]:
+for battle in battle_data:
     winner_deck = eval(battle["winnerDeck"])
     loser_deck = eval(battle["loserDeck"])
 
@@ -100,16 +102,23 @@ for rarity in rarity_win_loss:
 
 for rarity in battles_by_rarity:
     counts = list(battles_by_rarity[rarity].keys())
+    battles = sum([sum(battles_by_rarity[rarity][c].values()) for c in counts])
     counts.sort(key=int)
     values = []
     labels = []
+    percentages = []
     for count in counts:
+        rarity_win_rates[rarity][count] = {"win_rate": 0, "kf": 0}
+        count_battles = sum(battles_by_rarity[rarity][count].values())
         total_battles = (battles_by_rarity[rarity][count]["winner"] +
                          battles_by_rarity[rarity][count]["loser"])
         wins = battles_by_rarity[rarity][count]["winner"]
         win_rate = wins / total_battles * 100
-        rarity_win_rates[rarity][count] = win_rate
+        percentage = count_battles / battles * 100
+        rarity_win_rates[rarity][count]["win_rate"] = win_rate
+        rarity_win_rates[rarity][count]["kf"] = win_rate * percentage
         values.append(win_rate)
+        percentages.append(percentage)
         labels.append(str(count))
     plt.bar(labels, values)
     for i, v in enumerate(values):
@@ -118,26 +127,31 @@ for rarity in battles_by_rarity:
     plt.ylabel("Win Rate, %")
     plt.title(f"Win Rate by Number of {rarity} cards")
     plt.show()
+    plt.bar(labels, percentages)
+    for i, v in enumerate(percentages):
+        plt.text(i, v + 0.5, str(round(v, 1)) + "%", ha="center")
+    plt.xlabel("Number of Cards")
+    plt.ylabel("Percentage of Battles, %")
+    plt.title(f"% Battles by Number of {rarity} Cards")
+    plt.show()
 
-for l in rarity_win_rates["Legendary"]:
-    for e in rarity_win_rates["Epic"]:
-        for r in rarity_win_rates["Rare"]:
-            for c in rarity_win_rates["Common"]:
+for l, d in rarity_win_rates["Legendary"].items():
+    for e, a in rarity_win_rates["Epic"].items():
+        for r, s in rarity_win_rates["Rare"].items():
+            for c, w in rarity_win_rates["Common"].items():
                 if l + e + r + c != 8:
                     continue
-                total_win_rate = (rarity_win_rates["Legendary"][l] +
-                                  rarity_win_rates["Epic"][e] +
-                                  rarity_win_rates["Rare"][r] +
-                                  rarity_win_rates["Common"][c]) / 4
-                combinations.append([[l, e, r, c], total_win_rate])
+                total_win_rate = (d["win_rate"] + a["win_rate"] + s["win_rate"] + w["win_rate"]) / 4
+                total_kf = (d["kf"] + a["kf"] + s["kf"] + w["kf"])
+                combination = [l, e, r, c]
+                combinations.append([combination, total_win_rate, total_kf])
 
-combinations.sort(key=lambda x: x[1], reverse=True)
-best_combinations = combinations[:3]
+combinations.sort(key=lambda x: x[2], reverse=True)
+combinations = combinations[:3]
 
-labels_list = ["Legendary", "Epic", "Rare", "Common"]
-colors = ["gold", "lightskyblue", "lightcoral", "lightgreen"]
+best_combinations = sorted(combinations, key=lambda x: x[1], reverse=True)
 
-for i, (combination, win_rate) in enumerate(best_combinations):
+for i, (combination, win_rate, kf) in enumerate(best_combinations):
     plt.figure()
     plt.bar(labels_list, combination, color=colors)
     plt.xlabel("Card Rarity")

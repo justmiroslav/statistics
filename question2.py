@@ -2,14 +2,14 @@ import csv
 import matplotlib.pyplot as plt
 
 battle_data = []
-with open("ClashRoyaleData.csv", "r") as file:
+with open("BattleData.csv", "r") as file:
     reader = csv.DictReader(file)
     for row in reader:
         battle_data.append(row)
 
 elixir_level_differences = []
 
-for battle in battle_data[:100000]:
+for battle in battle_data:
     if int(battle["totalDamage"]) > 12000:
         winner_elixir = float(battle["winnerElixir"])
         loser_elixir = float(battle["loserElixir"])
